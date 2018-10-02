@@ -289,7 +289,7 @@ public class Main implements IXposedHookLoadPackage {
             // hook微信插入数据的方法
             XposedHelpers.findAndHookMethod("com.tencent.wcdb.database.SQLiteDatabase", loadPackageParam.classLoader, "insertWithOnConflict", String.class, String.class, ContentValues.class, int.class, new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable { // 打印插入数据信息
+                protected void afterHookedMethod(final MethodHookParam param) throws Throwable { // 打印插入数据信息
                     Log.d("SQLiteDatabase", "------------------------insert start---------------------" + "\n\n");
                     Log.d("SQLiteDatabase", "param args1:" + param.args[0]);
                     Log.d("SQLiteDatabase", "param args1:" + param.args[1]);
@@ -394,14 +394,44 @@ public class Main implements IXposedHookLoadPackage {
                             HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_remittance_record", map, "utf-8", new OnResponseListner() {
                                 @Override
                                 public void onSucess(String response) {
-                                    Log.d("SQLiteDatabase", "add_remittance_record: OK");
+                                    Log.d("SQLiteDatabase", "add_remittance_result: OK");
                                 }
 
                                 @Override
                                 public void onError(String error) {
-                                    Log.d("SQLiteDatabase", "add_remittance_record: ERROR");
+                                    Log.d("SQLiteDatabase", "add_remittance_result: ERROR");
                                 }
                             });
+                            break;
+                        //更新红包记录
+                        case "WalletLuckyMoney":
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Map<String,String> map=new HashMap<>();
+                                    ContentValues contentValues = (ContentValues) param.args[2];
+                                    map.put("unique_id", Utlis.getUniqueID());
+                                    map.put("hb_status", contentValues.getAsString("hbStatus"));
+                                    map.put("hb_type", contentValues.getAsString("hbType"));
+                                    map.put("receive_status", contentValues.getAsString("receiveStatus"));
+                                    map.put("receive_time", contentValues.getAsString("receiveTime"));
+                                    map.put("receive_amount", contentValues.getAsString("receiveAmount"));
+                                    map.put("content", contentValues.getAsString("mNativeUrl"));
+
+                                    Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_params: "+new JSONObject(map));
+                                    HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_wallet_lucky_money_record", map, "utf-8", new OnResponseListner() {
+                                        @Override
+                                        public void onSucess(String response) {
+                                            Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_result: OK:"+response);
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_result: ERROR:"+error);
+                                        }
+                                    });
+                                }
+                            }).start();
                             break;
                     }
                 }
