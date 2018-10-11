@@ -12,6 +12,7 @@ import de.robv.android.xposed.XC_MethodHook;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
+import android.os.Bundle;
 
 public class Main implements IXposedHookLoadPackage {
 
@@ -46,6 +47,29 @@ public class Main implements IXposedHookLoadPackage {
                     }
                 }
             });
+
+            XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.account.ui.LoginUI", loadPackageParam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
+                @Override
+                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                    try {
+                        Log.d("CallbackMethod", "com.tencent.mm.plugin.account.ui.LoginUI.onCreate");
+                        //向服务获取此设备绑定的微信账号密码
+
+                        //账号框
+                        Field eRXField = XposedHelpers.findField(param.thisObject.getClass(), "eRX");
+                        //密码框
+                        Field eRYField = XposedHelpers.findField(param.thisObject.getClass(), "eRY");
+                        android.widget.EditText eRX = (android.widget.EditText) eRXField.get(param.thisObject);
+                        eRX.setText("hehe");
+                        android.widget.EditText eRY = (android.widget.EditText) eRYField.get(param.thisObject);
+                        eRY.setText("hehehehe");
+
+                    } catch (Throwable t) {
+                        XposedBridge.log(t);
+                    }
+                }
+            });
+
 
             final Class<?> aClass = XposedHelpers.findClass("com.tencent.mm.ab.d.a", loadPackageParam.classLoader);
 //            XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.messenger.foundation.c", loadPackageParam.classLoader, "a", aClass, sClass, new XC_MethodHook() {
