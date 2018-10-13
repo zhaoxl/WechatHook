@@ -1,5 +1,8 @@
 package com.example.apple.wechathook;
 
+import android.util.Log;
+
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -7,6 +10,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,32 +22,39 @@ public class HttpUtlis {
      */
     public static void getRequest(String url, Map<String,String> params, String encode, OnResponseListner listner) {
         StringBuffer sb = new StringBuffer(url);
-        sb.append("?");
         if (params!=null && !params.isEmpty()){
+            sb.append("?");
             for (Map.Entry<String,String> entry:params.entrySet()) {    //增强for遍历循环添加拼接请求内容
                 sb.append(entry.getKey()).append("=").append(entry.getValue()).append("&");
             }
             sb.deleteCharAt(sb.length()-1);
-            if (listner!=null) {
-                try {
-                    URL path = new URL(sb.toString());
-                    if (path!=null) {
-                        HttpURLConnection con = (HttpURLConnection) path.openConnection();
-                        con.setRequestMethod("GET");    //设置请求方式
-                        con.setConnectTimeout(3000);    //链接超时3秒
-                        con.setDoOutput(true);
-                        con.setDoInput(true);
-                        OutputStream os = con.getOutputStream();
-                        os.write(sb.toString().getBytes(encode));
-                        os.close();
-                        if (con.getResponseCode() == 200) {    //应答码200表示请求成功
-                            onSucessResopond(encode, listner, con);
-                        }
+
+        }
+        Log.d("URL", sb.toString());
+
+        if (listner!=null) {
+            try {
+                URL path = new URL(sb.toString());
+                if (path!=null) {
+                    HttpURLConnection con = (HttpURLConnection) path.openConnection();
+                    //设置请求的模式
+                    con.setRequestMethod("GET");
+                    //设置请求连接超时时间
+                    con.setConnectTimeout(5000);
+                    //设置访问时的超时时间
+                    con.setReadTimeout(5000);
+                    //开启连接
+                    con.connect();
+                    //如果应答码为200的时候，表示成功的请求带了，这里的HttpURLConnection.HTTP_OK就是200
+                    if(con.getResponseCode()==HttpURLConnection.HTTP_OK){
+                        onSucessResopond(encode, listner, con);
                     }
-                } catch (Exception error) {
-                    error.printStackTrace();
-                    onError(listner, error);
+                    //关闭流和连接
+                    con.disconnect();
                 }
+            } catch (Exception error) {
+                error.printStackTrace();
+                onError(listner, error);
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.example.apple.wechathook;
 
 
+import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.os.Build;
@@ -21,6 +22,8 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage;
 import android.os.Bundle;
 
 public class Main implements IXposedHookLoadPackage {
+    final String apiBaseUrl = "http://192.168.2.116:3000";
+
     @Override
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam loadPackageParam) throws Throwable {
         if(loadPackageParam.packageName.equals("com.tencent.mm"))
@@ -55,19 +58,74 @@ public class Main implements IXposedHookLoadPackage {
 
             XposedHelpers.findAndHookMethod("com.tencent.mm.plugin.account.ui.LoginUI", loadPackageParam.classLoader, "onCreate", Bundle.class, new XC_MethodHook() {
                 @Override
-                protected void afterHookedMethod(XC_MethodHook.MethodHookParam param) throws Throwable {
+                protected void afterHookedMethod(final XC_MethodHook.MethodHookParam param) throws Throwable {
                     try {
                         Log.d("CallbackMethod", "com.tencent.mm.plugin.account.ui.LoginUI.onCreate");
-                        //向服务获取此设备绑定的微信账号密码
-
                         //账号框
                         Field eRXField = XposedHelpers.findField(param.thisObject.getClass(), "eRX");
+                        final android.widget.EditText eRX = (android.widget.EditText) eRXField.get(param.thisObject);
                         //密码框
                         Field eRYField = XposedHelpers.findField(param.thisObject.getClass(), "eRY");
-                        android.widget.EditText eRX = (android.widget.EditText) eRXField.get(param.thisObject);
-                        eRX.setText("hehe");
-                        android.widget.EditText eRY = (android.widget.EditText) eRYField.get(param.thisObject);
-                        eRY.setText("hehehehe");
+                        final android.widget.EditText eRY = (android.widget.EditText) eRYField.get(param.thisObject);
+                        //向服务获取此设备绑定的微信账号密码
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                Map<String,String> map=new HashMap<>();
+//                                map.put("unique_id", Utlis.getUniqueID());
+
+                                HttpUtlis.getRequest(apiBaseUrl+"/api/v1/devices/get_account.json?unique_id="+Utlis.getUniqueID(), map, "utf-8", new OnResponseListner() {
+                                    @Override
+                                    public void onSucess(String response) {
+                                        try
+                                        {
+                                            JSONObject responseJson = new JSONObject(response);
+                                            if(responseJson.getInt("code") == 200)
+                                            {
+                                                final JSONObject dataJson = responseJson.getJSONObject("data");
+                                                if(dataJson.getString("result").equals("OK"))
+                                                {
+                                                    ((Activity)param.thisObject).runOnUiThread(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            try{
+                                                                eRX.setText(dataJson.getString("wx_account"));
+                                                                eRY.setText(dataJson.getString("wx_pwd"));
+                                                            }
+                                                            catch (org.json.JSONException error)
+                                                            {
+                                                                //
+                                                            }
+                                                        }
+                                                    });
+                                                }
+                                                else
+                                                {
+                                                    Log.d("Hook::Handle", "devices_get_account: WARNING: result:"+dataJson.getString("result"));
+                                                    //返回错误原因，退出微信
+                                                }
+                                            }
+                                            else
+                                            {
+                                                Log.d("Hook::Handle", "devices_get_account: WARNING: code:"+responseJson.getString("code"));
+                                                //服务器错误，退出微信
+                                            }
+                                        }
+                                        catch (org.json.JSONException error)
+                                        {
+                                            Log.d("HookCommonException", error.getMessage());
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        Log.d("CallApiError", "devices_get_account: ERROR: "+error);
+                                    }
+                                });
+
+                            }
+                        }).start();
+
 
                     } catch (Throwable t) {
                         XposedBridge.log(t);
@@ -352,7 +410,7 @@ public class Main implements IXposedHookLoadPackage {
                             map.put("is_send", isSend);
                             map.put("map_json", new JSONObject(map).toString());
                             Log.d("SQLiteDatabase", "message_save_result: OK");
-                            HttpUtlis.postJsonRequest("http://192.168.1.19:3000/api/v1/messages/save.json", new JSONObject(map).toString(), "utf-8", new OnResponseListner() {
+                            HttpUtlis.postJsonRequest(apiBaseUrl+"/api/v1/messages/save.json", new JSONObject(map).toString(), "utf-8", new OnResponseListner() {
                                 @Override
                                 public void onSucess(String response) {
                                     Log.d("SQLiteDatabase", "message_save_result: OK");
@@ -371,7 +429,7 @@ public class Main implements IXposedHookLoadPackage {
                             map=new HashMap<>();
                             map.put("unique_id", Utlis.getUniqueID());
                             map.put("md5", md5);
-                            HttpUtlis.postFileRequest("http://192.168.1.19:3000/api/v1/messages/upload_image", map, path, "image/jpeg", new OnResponseListner() {
+                            HttpUtlis.postFileRequest(apiBaseUrl+"/api/v1/messages/upload_image", map, path, "image/jpeg", new OnResponseListner() {
                                 @Override
                                 public void onSucess(String response) {
                                     Log.d("SQLiteDatabase", "upload_image_result: OK");
@@ -392,7 +450,7 @@ public class Main implements IXposedHookLoadPackage {
                                 map=new HashMap<>();
                                 map.put("msg_id", msgId);
                                 map.put("unique_id", Utlis.getUniqueID());
-                                HttpUtlis.postFileRequest("http://192.168.1.19:3000/api/v1/messages/upload_voice", map, path, "audio/amr", new OnResponseListner() {
+                                HttpUtlis.postFileRequest(apiBaseUrl+"/api/v1/messages/upload_voice", map, path, "audio/amr", new OnResponseListner() {
                                     @Override
                                     public void onSucess(String response) {
                                         Log.d("SQLiteDatabase", "upload_voice_result: OK");
@@ -415,7 +473,7 @@ public class Main implements IXposedHookLoadPackage {
                             map.put("unique_id", Utlis.getUniqueID());
                             map.put("state", state);
                             map.put("is_send", isSend);
-                            HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_remittance_record", map, "utf-8", new OnResponseListner() {
+                            HttpUtlis.postRequest(apiBaseUrl+"/api/v1/messages/add_remittance_record", map, "utf-8", new OnResponseListner() {
                                 @Override
                                 public void onSucess(String response) {
                                     Log.d("SQLiteDatabase", "add_remittance_result: OK");
@@ -443,7 +501,7 @@ public class Main implements IXposedHookLoadPackage {
                                     map.put("content", contentValues.getAsString("mNativeUrl"));
 
                                     Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_params: "+new JSONObject(map));
-                                    HttpUtlis.postRequest("http://192.168.1.19:3000/api/v1/messages/add_wallet_lucky_money_record", map, "utf-8", new OnResponseListner() {
+                                    HttpUtlis.postRequest(apiBaseUrl+"/api/v1/messages/add_wallet_lucky_money_record", map, "utf-8", new OnResponseListner() {
                                         @Override
                                         public void onSucess(String response) {
                                             Log.d("SQLiteDatabase", "add_wallet_lucky_money_record_result: OK:"+response);
